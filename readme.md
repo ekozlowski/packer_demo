@@ -34,7 +34,7 @@ What We'll Cover
 - What the preseed.cfg file is, and why you need it
   - https://help.ubuntu.com/lts/installation-guide/armhf/apbs02.html
   - We pass the command: `preseed/url=http://{{.HTTPIP}}:{{.HTTPPort}}/preseed.cfg`
-  - How Packer serves the preseed.cfg file
+  - How Packer serves the preseed.cfg file:  https://www.packer.io/docs/builders/virtualbox-iso.html#http_directory
 - What the (boxname).json file is, and why you should care
 - Debugging - `Control-Alt-F4` is your friend!
 - How to get Packer to build a Vagrant compatible .box file
