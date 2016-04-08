@@ -3,6 +3,8 @@ Packer Demo
 
 4/8/2016 Round Table
 
+NOTE:  *Yes, I do realize I've committed a private key.  Check fabfile.py regen_keys before giving me static about it!!!!*
+
 Prerequisites
 ===
 
