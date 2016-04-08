@@ -3,4 +3,4 @@
 *.iso
 output-virtualbox-iso/
 packdemo.box
-playbook.retry
+*.retry
