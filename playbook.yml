@@ -72,6 +72,15 @@
         - { key: 'vagrant', line: 'vagrant  ALL=(ALL) NOPASSWD:ALL' }
       when: aws_machine.stat.exists == False
 
+    - name: Create .ssh directory for Vagrant user
+      file:
+        state: directory
+        path: /home/vagrant/.ssh
+        owner: vagrant
+        group: vagrant
+        mode: 0700
+      when: aws_machine.stat.exists == False
+      
     - name: Set Access Key for Vagrant when a *local* box.
       copy:
         src: ./files/vagrant.pub
