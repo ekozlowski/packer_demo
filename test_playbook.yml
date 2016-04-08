@@ -1,0 +1,14 @@
+---
+- name: Packer Demo Installs
+  hosts: packerdemo
+  become: true
+
+  tasks:
+
+    # Let's do something silly, like setup a local Apache server, (just for kicks)
+    # (I realize I'm scratching nails on the chalkboard for you Nginx fans...  :)
+  - name: Install Apache
+    apt:
+      pkg: apache2
+      state: present
+    become: true
