@@ -7,7 +7,7 @@ boxes = [
     :eth1 => "192.168.50.11",
     :mem => "1024",
     :cpu => "1",
-    :hostport => "8585"
+    :hostport => "8065"
   }
 ]
 
@@ -20,7 +20,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.box = "packerdemobox"
       config.vm.box_url = "./packdemo.box"
       config.vm.network "private_network", ip: opts[:eth1]
-      config.vm.network "forwarded_port", guest: 9200, host: opts[:hostport]
+      config.vm.network "forwarded_port", guest: 80, host: opts[:hostport]
       config.vm.provider "virtualbox" do |v|
         v.memory = opts[:mem]
         v.cpus = opts[:cpu]
@@ -29,7 +29,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.provision :ansible do |ansible|
-    ansible.playbook = "./playbook.yml"
+    ansible.playbook = "./test_playbook.yml"
     ansible.groups = {
       "packerdemo" => ["packertest"]
     }
