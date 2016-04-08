@@ -1,0 +1,60 @@
+{
+    "variables" : {
+    "aws_access_key": "{{ env `AWS_ACCESS_KEY` }}",
+    "aws_secret_key": "{{ env `AWS_SECRET_KEY` }}",
+    "iso_url": "./isos/ubuntu-14.04.4-server-amd64.iso",
+    "iso_checksum": "2ac1f3e0de626e54d05065d6f549fa3a",
+    "iso_checksum_type": "md5"
+    },
+    "provisioners": [
+        {
+            "type": "ansible",
+            "playbook_file": "./playbook.yml",
+            "host_alias": "packerdemo",
+            "user": "vagrant",
+            "extra_arguments": ["--ask-sudo-pass", "-vv"]
+        }
+    ],
+    "builders": [
+        {"type": "amazon-ebs",
+        "access_key": "{{ user `aws_access_key`}}",
+        "secret_key": "{{ user `aws_secret_key`}}",
+        "region": "us-east-1",
+        "source_ami": "ami-6d060707",
+        "instance_type": "c3.large",
+        "ssh_username": "ubuntu",
+        "ami_name": "packerdemo {{timestamp}}"
+        },
+        {"type": "virtualbox-iso",
+        "guest_os_type": "Ubuntu_64",
+        "iso_url": "{{ user `iso_url` }}",
+        "iso_checksum": "{{ user `iso_checksum` }}",
+        "iso_checksum_type": "{{ user `iso_checksum_type` }}",
+        "ssh_username": "vagrant",
+        "ssh_password": "vagrant",
+        "headless": "false",
+        "ssh_wait_timeout": "1000s",
+        "http_directory": "./http/ubuntu",
+        "http_port_min": "9321",
+        "http_port_max": "9321",
+        "shutdown_command": "echo 'vagrant' | sudo -S -E shutdown -P now",
+        "boot_command": [
+            "<esc><esc><enter><wait>",
+            "/install/vmlinuz ",
+            "preseed/url=http://{{.HTTPIP}}:{{.HTTPPort}}/preseed.cfg ",
+            "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
+            "hostname={{.Name}} ",
+            "fb=false debconf/frontend=noninteractive ",
+            "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
+            "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+            "initrd=/install/initrd.gz -- <enter>"
+            ]
+        }
+    ],
+    "post-processors": [
+        {"type": "vagrant",
+         "only": ["virtualbox-iso"],
+         "output": "./packdemo.box"
+        }
+    ]
+}

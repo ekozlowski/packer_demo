@@ -1,0 +1,82 @@
+---
+- name: Packer Demo Installs
+  hosts: packerdemo
+  become: true
+
+  tasks:
+
+    # Stat the path tot he aws cloud instance folder, so we can differentiate
+    # between running the playbook on AWS and on a VirtualBox-ISO setup.
+    - name: Stat the AWS Path
+      stat:
+        path: /var/lib/cloud/instance
+      register: aws_machine
+
+    - name: Wait for us to be completely done booting when we're in AWS
+      wait_for: path=/var/lib/cloud/instance/boot-finished
+      when: aws_machine.stat.exists == True
+
+    - name: Update APT
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+      become: true
+
+    - name: Install Guest Additions Dependencies for VirtualBox Guest Additions
+      apt:
+        pkg: "{{ item }}"
+      with_items:
+        - build-essential
+        - dkms
+        - nfs-common
+      when: aws_machine.stat.exists == False
+
+    # Note, that Packer witll *automatically* copy this from our locally
+    # installed VirtualBox.
+    - name: Mount VirtualBox guest additions ISO.
+      mount:
+        name: /tmp/vbox
+        src: "/home/vagrant/VBoxGuestAdditions.iso"
+        opts: loop
+        state: mounted
+        fstype: iso9660
+      when: aws_machine.stat.exists == False
+
+    - name: Run VirtualBox guest additions installation.
+      shell: sh /tmp/vbox/VBoxLinuxAdditions.run
+      failed_when: false
+      when: aws_machine.stat.exists == False
+
+    - name: Unmount VirtualBox guest additions ISO.
+      mount:
+        name: /tmp/vbox
+        src: "/home/vagrant/VBoxGuestAdditions.iso"
+        state: absent
+        fstype: iso9660
+      when: aws_machine.stat.exists == False
+
+    - name: Delete VirtualBox guest additions ISO.
+      file:
+        path: "/home/vagrant/VBoxGuestAdditions.iso"
+        state: absent
+      when: aws_machine.stat.exists == False
+
+    - name: Modify sudoers file so vagrant doesn't need a password.
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: "^{{ item.key }}"
+        line: '{{ item.line }}'
+        validate: 'visudo -cf %s'
+      with_items:
+        - { key: 'vagrant', line: 'vagrant  ALL=(ALL) NOPASSWD:ALL' }
+      when: aws_machine.stat.exists == False
+
+    - name: Set Access Key for Vagrant when a *local* box.
+      copy:
+        src: ./files/vagrant.pub
+        dest: /home/vagrant/.ssh/authorized_keys
+        owner: vagrant
+        group: vagrant
+        mode: 0600
+      when: aws_machine.stat.exists == False
